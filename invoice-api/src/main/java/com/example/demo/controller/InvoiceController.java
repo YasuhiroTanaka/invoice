@@ -1,11 +1,10 @@
 package com.example.demo.controller;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,29 +12,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.DebugLog;
-import com.example.demo.RequestPath;
 import com.example.demo.entities.InvoiceEntity;
 import com.example.demo.exception.ApiException;
-import com.example.demo.exception.ApiException.ErrorCode;
 import com.example.demo.form.InvoiceRequestForm;
+import com.example.demo.response.ApiError;
 import com.example.demo.service.InvoiceService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 /**
  * リクエストコントローラ.
  */
-@Controller
-@RequestMapping(RequestPath.API + "/invoice")
+@RestController
+@RequestMapping("/api/invoice")
 public class InvoiceController {
-    /** CLASS. */
-    private static final String CLASS = InvoiceController.class.getSimpleName();
-
     /** InvoiceService. */
     @Autowired
-    private InvoiceService mInvoiceService;
+    private InvoiceService invoiceService;
 
     /**
      * 請求書新規登録.
@@ -44,23 +38,8 @@ public class InvoiceController {
      */
     @RequestMapping(method = RequestMethod.POST)
     @ResponseBody
-    public int postInvoice(@RequestBody String body) {
-        DebugLog.enter(CLASS + ".postInvoice");
-        int invoiceNumber = -1;
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            invoiceNumber = mInvoiceService.reigsterInvoice(mapper.readValue(body, InvoiceRequestForm.class));
-        } catch (InvalidFormatException e) {
-            // フォーマット不正.
-            throw new ApiException(ErrorCode.PARAMETER_FORMAT, e.getMessage());
-        } catch (ApiException e) {
-            throw e;
-        } catch (Exception e) {
-            // その他エラー.
-            throw new ApiException(ErrorCode.ERROR_OTHER, e.getMessage());
-        }
-        DebugLog.exit(CLASS + ".postInvoice : " + invoiceNumber);
-        return invoiceNumber;
+    public int postInvoice(@RequestBody InvoiceRequestForm  from) {
+        return invoiceService.reigsterInvoice(from);
     }
 
     /**
@@ -71,11 +50,7 @@ public class InvoiceController {
     @RequestMapping(method = RequestMethod.GET)
     @ResponseBody
     public List<InvoiceEntity> getAllInvoice() {
-        DebugLog.enter(CLASS + ".getAllInvoice");
-
-        List<InvoiceEntity> list = mInvoiceService.getAllInvoice();
-        DebugLog.exit(CLASS + ".getAllInvoice");
-        return list;
+        return invoiceService.getAllInvoice();
     }
 
     /**
@@ -87,19 +62,17 @@ public class InvoiceController {
     @RequestMapping(value = "{id}", method = RequestMethod.GET)
     @ResponseBody
     public InvoiceEntity getInvoice(@PathVariable final String id) {
-        DebugLog.enter(CLASS + ".getInvoice:" + id);
         InvoiceEntity invoice = null;
         try {
             int invoiceId = Integer.valueOf(id);
-            invoice = mInvoiceService.getInvoice(invoiceId);
+            invoice = invoiceService.getInvoice(invoiceId);
             if (invoice == null) {
-                throw new ApiException(ErrorCode.DATA_NOTHING, "[" + id + "] record is nothing.");
+                throw new ApiException(ApiError.DATA_NOTHING, "[" + id + "] record is nothing.");
             }
 
         } catch (NumberFormatException e) {
-            throw new ApiException(ErrorCode.PARAMETER_FORMAT, e.getMessage());
+            throw new ApiException(ApiError.PARAMETER_FORMAT, e.getMessage());
         }
-        DebugLog.exit(CLASS + ".getInvoice");
         return invoice;
     }
 
@@ -110,13 +83,18 @@ public class InvoiceController {
      * @return error response.
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({ ApiException.class })
+    @ExceptionHandler({ ApiException.class, InvalidFormatException.class, Exception.class })
     @ResponseBody
-    public List<Map<String, Object>> handleError(final ApiException error) {
-        DebugLog.enter(CLASS + ".handleApiError 400");
-        List<Map<String, Object>> errorResponse = error.createErrorResponse();
-        DebugLog.exit(CLASS + ".handleApiError:" + errorResponse);
-        return errorResponse;
+    public List<ApiError> handleError(final Exception error) {
+        List<ApiError> errorList;
+        if (error instanceof ApiException) {
+            errorList = ((ApiException) error).getApiErrorList();
+        } else if (error instanceof InvalidFormatException) {
+            errorList = Arrays.asList(new ApiError(ApiError.PARAMETER_FORMAT, error.getMessage()));
+        } else {
+            errorList = Arrays.asList(new ApiError(ApiError.ERROR_OTHER, error.getMessage()));
+        }
+        return errorList;
     }
 
     /**
@@ -126,13 +104,9 @@ public class InvoiceController {
      * @return error response.
      */
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({ Exception.class })
+    @ExceptionHandler({ RuntimeException.class })
     @ResponseBody
-    public List<Map<String, Object>> handleError(final Exception error) {
-        DebugLog.enter(CLASS + ".handleApiError 500");
-        List<Map<String, Object>> errorResponse
-            = new ApiException(ErrorCode.ERROR_OTHER, error.getMessage()).createErrorResponse();
-        DebugLog.exit(CLASS + ".handleApiError:" + errorResponse);
-        return errorResponse;
+    public List<ApiError> handleError(final RuntimeException error) {
+        return Arrays.asList(new ApiError(ApiError.ERROR_OTHER, error.getMessage()));
     }
 }

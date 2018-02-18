@@ -39,71 +39,71 @@ public class InvoiceEntity {
     @JsonProperty("invoice_no")
     @GeneratedValue(strategy = GenerationType.AUTO)
     /** 管理番号. */
-    public int mInvoiceNumber;
+    public int invoiceNumber;
     /** 顧客管理番号. */
     @Column(name = "client_no")
     @JsonProperty("client_no")
-    public int mClientNumber;
+    public int clientNumber;
     /** 請求状態. */
     @Column(name = "invoice_status")
     @JsonProperty("invoice_status")
-    public String mInvoiceStatus;
+    public String invoiceStatus;
     /** 請求書作成日. */
     @Column(name = "invoice_create_date")
     @JsonProperty("invoice_create_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    public Date mCreateDate;
+    public Date createDate;
     /** 請求書件名. */
     @Column(name = "invoice_title")
     @JsonProperty("invoice_title")
-    public String mTitle;
+    public String title;
     /** 請求金額. */
     @Column(name = "invoice_amt")
     @JsonProperty("invoice_amt")
-    public int mAmt;
+    public int amt;
     /** 消費税. */
     @Column(name = "tax_amt")
     @JsonProperty("tax_amt")
-    public int mTaxAmt;
+    public int taxAmt;
     /** 請求期間開始日. */
     @Column(name = "invoice_start_date")
     @JsonProperty("invoice_start_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    public Date mStartDate;
+    public Date startDate;
     /** 請求期間終了日. */
     @Column(name = "invoice_end_date")
     @JsonProperty("invoice_end_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
-    public Date mEndDate;
+    public Date endDate;
     /** 備考. */
     @Column(name = "invoice_note")
     @JsonProperty("invoice_note")
-    public String mNote;
+    public String note;
     /** 登録ユーザーID. */
     @Column(name = "create_user")
     @JsonProperty("create_user")
-    public String mCreateUser;
+    public String createUser;
     /** 登録日時. */
     @Column(name = "create_datetime")
     @JsonProperty("create_datetime")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    public Date mCreateDateTime;
+    public Date createDateTime;
     /** 更新ユーザーID. */
     @Column(name = "update_user")
     @JsonProperty("update_user")
-    public String mUpdateUser;
+    public String updateUser;
     /** 更新日時. */
     @Column(name = "update_datetime")
     @JsonProperty("update_datetime")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    public Date mUpdateDateTime;
+    public Date updateDateTime;
     /** 削除フラグ. */
     @Column(name = "del_flg")
     @JsonProperty("del_flg")
-    public String mDeleteFlag;
+    public String deleteFlag;
 
     /** 注文内容. */
     @JsonProperty("order")
     @OneToMany
-    public List<OrderEntity> mOrder;
+    public List<OrderEntity> order;
 }

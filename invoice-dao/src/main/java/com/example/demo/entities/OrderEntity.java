@@ -23,43 +23,43 @@ public class OrderEntity {
     @Column(name = "order_no")
     @JsonProperty("order_no")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    public int mOrderNumber;
+    public int orderNumber;
     /** 顧客管理番号. */
     @Column(name = "client_no")
     @JsonProperty("client_no")
-    public int mClientNumber;
+    public int clientNumber;
     /** 商品管理番号. */
     @Column(name = "item_no")
     @JsonProperty("item_no")
-    public int mItemNumber;
+    public int itemNumber;
     /** 商品名. */
     @Column(name = "item_name")
     @JsonProperty("item_name")
-    public String mItemName;
+    public String itemName;
     /** 商材種別. */
     @Column(name = "item_type")
     @JsonProperty("item_type")
-    public String mItemType;
+    public String itemType;
     /** 商品販売価格（税抜き）. */
     @Column(name = "item_price")
     @JsonProperty("item_price")
-    public int mItemPrice;
+    public int itemPrice;
     /** 購入数量. */
     @Column(name = "item_count")
     @JsonProperty("item_count")
-    public int mItemCount;
+    public int itemCount;
     /** 登録日時. */
     @Column(name = "create_datetime")
     @JsonProperty("create_datetime")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    public Date mCreateDateTime;
+    public Date createDateTime;
     /** 更新日時. */
     @Column(name = "update_datetime")
     @JsonProperty("update_datetime")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-    public Date mUpdateDateTime;
+    public Date updateDateTime;
     /** 削除フラグ. */
     @Column(name = "del_flg")
     @JsonProperty("del_flg")
-    public String mDeleteFlag;
+    public String deleteFlag;
 }

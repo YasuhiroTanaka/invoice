@@ -5,12 +5,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class InvoiceApplication {
-    /** CLASS. */
-    private static final String CLASS = InvoiceApplication.class.getSimpleName();
 
+    /**
+     * 実行main.
+     * @param args コマンドライン引数.
+     */
     public static void main(String[] args) {
-        DebugLog.enter(CLASS + ".main");
         SpringApplication.run(InvoiceApplication.class, args);
-        DebugLog.exit(CLASS + ".main");
     }
 }

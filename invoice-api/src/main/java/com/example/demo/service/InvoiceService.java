@@ -1,21 +1,21 @@
 package com.example.demo.service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.DebugLog;
 import com.example.demo.dao.ClientRepository;
 import com.example.demo.dao.InvoiceRepository;
 import com.example.demo.dao.OrderRepository;
 import com.example.demo.entities.InvoiceEntity;
 import com.example.demo.entities.OrderEntity;
 import com.example.demo.exception.ApiException;
-import com.example.demo.exception.ApiException.ErrorCode;
 import com.example.demo.form.InvoiceRequestForm;
+import com.example.demo.response.ApiError;
 import com.example.demo.utils.FormatUtils;
 
 /**
@@ -23,20 +23,18 @@ import com.example.demo.utils.FormatUtils;
  */
 @Service
 public class InvoiceService {
-    /** CLASS. */
-    private static final String CLASS = InvoiceService.class.getSimpleName();
     /** 消費税. */
     private static final double TAX = 0.08;
 
     /** Invoice Repository. */
     @Autowired
-    private InvoiceRepository mInvoiceRepository;
+    private InvoiceRepository invoiceRepository;
     /** Client Repository. */
     @Autowired
-    private ClientRepository mClientRepository;
+    private ClientRepository clientRepository;
     /** Order Repository. */
     @Autowired
-    private OrderRepository mOrderRepository;
+    private OrderRepository orderRepository;
 
     /**
      * 請求書登録.
@@ -46,7 +44,6 @@ public class InvoiceService {
      * @return 請求書管理番号.
      */
     public int reigsterInvoice(final InvoiceRequestForm form) {
-        DebugLog.enter(CLASS + ".reigsterInvoice");
         // パラメータチェック.
         checkParameter(form);
 
@@ -61,43 +58,42 @@ public class InvoiceService {
             orderList = getMatchedOrderList(clientNumber, startDate, endDate);
         } catch (ParseException e) {
             // checkParameterで一回チェックしているため発生することはないが念のため.
-            throw new ApiException(ErrorCode.PARAMETER_FORMAT, e.getMessage());
+            throw new ApiException(ApiError.PARAMETER_FORMAT, e.getMessage());
         }
         // 取得した注文リストチェック.
         if (orderList == null || orderList.isEmpty()) {
-            throw new ApiException(ErrorCode.DATA_NOTHING, "Order is nothing.");
+            throw new ApiException(ApiError.DATA_NOTHING, "Order is nothing.");
         }
         // 注文リストから金額を算出.
         int amt = 0;
         for (OrderEntity order : orderList) {
-            amt += order.mItemPrice * order.mItemCount;
+            amt += order.itemPrice * order.itemCount;
         }
         int tax = (int) (amt * TAX);
         Date now = new Date();
 
         // 登録実行.
         InvoiceEntity invoice = new InvoiceEntity();
-        invoice.mClientNumber = clientNumber;
-        invoice.mInvoiceStatus = InvoiceEntity.STATUS_NEW;
-        invoice.mCreateDate = now;
-        invoice.mTitle = form.getInvoiceTitle();
-        invoice.mAmt = amt;
-        invoice.mTaxAmt = tax;
-        invoice.mStartDate = startDate;
-        invoice.mEndDate = endDate;
-        invoice.mNote = form.getInvoiceNote();
-        invoice.mCreateUser = form.getUserId();
-        invoice.mCreateDateTime = now;
-        invoice.mUpdateUser = form.getUserId();
-        invoice.mUpdateDateTime = now;
-        invoice.mDeleteFlag = InvoiceEntity.DELETE_FLAG_ENABLE;
-        InvoiceEntity savedInvoice = mInvoiceRepository.save(invoice);
+        invoice.clientNumber = clientNumber;
+        invoice.invoiceStatus = InvoiceEntity.STATUS_NEW;
+        invoice.createDate = now;
+        invoice.title = form.getInvoiceTitle();
+        invoice.amt = amt;
+        invoice.taxAmt = tax;
+        invoice.startDate = startDate;
+        invoice.endDate = endDate;
+        invoice.note = form.getInvoiceNote();
+        invoice.createUser = form.getUserId();
+        invoice.createDateTime = now;
+        invoice.updateUser = form.getUserId();
+        invoice.updateDateTime = now;
+        invoice.deleteFlag = InvoiceEntity.DELETE_FLAG_ENABLE;
+        InvoiceEntity savedInvoice = invoiceRepository.save(invoice);
         if (savedInvoice == null) {
-            throw new ApiException(ErrorCode.ERROR_OTHER, "Invoice registration failed.");
+            throw new ApiException(ApiError.ERROR_OTHER, "Invoice registration failed.");
         }
 
-        DebugLog.exit(CLASS + ".reigsterInvoice");
-        return savedInvoice.mInvoiceNumber;
+        return savedInvoice.invoiceNumber;
     }
 
     /**
@@ -106,20 +102,18 @@ public class InvoiceService {
      * @return すべての請求書情報.
      */
     public List<InvoiceEntity> getAllInvoice() {
-        DebugLog.enter(CLASS + ".getAllInvoice");
-        List<InvoiceEntity> invoiceList = mInvoiceRepository.findAll();
+        List<InvoiceEntity> invoiceList = invoiceRepository.findAll();
         if (invoiceList == null || invoiceList.isEmpty()) {
-            throw new ApiException(ErrorCode.DATA_NOTHING, "Invoice is nothing.");
+            throw new ApiException(ApiError.DATA_NOTHING, "Invoice is nothing.");
         }
         for (InvoiceEntity invoice : invoiceList) {
             List<OrderEntity> orderList = getInvoiceOrderList(invoice);
             if (orderList == null || orderList.isEmpty()) {
-                throw new ApiException(ErrorCode.DATA_NOTHING,
-                        "Invoice [" + invoice.mInvoiceNumber + "]'s order is nothing.");
+                throw new ApiException(ApiError.DATA_NOTHING,
+                        "Invoice [" + invoice.invoiceNumber + "]'s order is nothing.");
             }
-            invoice.mOrder = orderList;
+            invoice.order = orderList;
         }
-        DebugLog.exit(CLASS + ".getAllInvoice");
         return invoiceList;
     }
 
@@ -131,89 +125,82 @@ public class InvoiceService {
      * @return 指定された請求書情報.
      */
     public InvoiceEntity getInvoice(final int invoiceNumber) {
-        DebugLog.enter(CLASS + ".getInvoice:" + invoiceNumber);
-        InvoiceEntity invoice = mInvoiceRepository.findOne(invoiceNumber);
+        InvoiceEntity invoice = invoiceRepository.findOne(invoiceNumber);
         if (invoice == null) {
-            throw new ApiException(ErrorCode.DATA_NOTHING, "Invoice [" + invoiceNumber + "] is nothing.");
+            throw new ApiException(ApiError.DATA_NOTHING, "Invoice [" + invoiceNumber + "] is nothing.");
         }
         List<OrderEntity> orderList = getInvoiceOrderList(invoice);
         if (orderList == null || orderList.isEmpty()) {
-            throw new ApiException(ErrorCode.DATA_NOTHING, "Invoice [" + invoiceNumber + "]'s order is nothing.");
+            throw new ApiException(ApiError.DATA_NOTHING, "Invoice [" + invoiceNumber + "]'s order is nothing.");
         }
-        invoice.mOrder = orderList;
-        DebugLog.exit(CLASS + ".getInvoice");
+        invoice.order = orderList;
         return invoice;
     }
 
     /**
      * 条件に当てはまる注文リストを取得する.
      *
-     * @param clientNumber
-     *            顧客管理番号.
-     * @param startDate
-     *            検索開始日時.
-     * @param endDate
-     *            検索終了日時.
+     * @param clientNumber 顧客管理番号.
+     * @param startDate 検索開始日時.
+     * @param endDate 検索終了日時.
      * @return 注文リスト.
      */
     private List<OrderEntity> getMatchedOrderList(final int clientNumber, final Date startDate, final Date endDate) {
-        return mOrderRepository.findOrders(clientNumber, startDate, endDate);
+        return orderRepository.findOrders(clientNumber, startDate, endDate);
     }
 
     /**
      * 請求書情報に紐づく注文リストを取得する.
      *
-     * @param invoice
-     *            請求書情報.
+     * @param invoice 請求書情報.
      * @return 注文リスト.
      */
     private List<OrderEntity> getInvoiceOrderList(final InvoiceEntity invoice) {
-        return getMatchedOrderList(invoice.mClientNumber, invoice.mStartDate, invoice.mEndDate);
+        return getMatchedOrderList(invoice.clientNumber, invoice.startDate, invoice.endDate);
     }
 
     /**
      * パラメータチェック.
      *
-     * @param form
-     *            登録フォーム.
+     * @param form 登録フォーム.
      */
     private void checkParameter(final InvoiceRequestForm form) {
         if (form == null) {
-            throw new ApiException(ErrorCode.ERROR_OTHER, "form nothing.");
+            throw new ApiException(ApiError.ERROR_OTHER, "form nothing.");
         }
-        ApiException error = new ApiException();
+        List<ApiError> errorList = new ArrayList<>();
         // ユーザID.
         String userId = form.getUserId();
         if (userId == null) {
-            error.addError(ErrorCode.REQIRE_PARAMETER, "user id is require.");
+            errorList.add(new ApiError(ApiError.REQIRE_PARAMETER, "user id is require."));
         }
         // 顧客管理番号.
         int clientNumber = form.getClientNumber();
         if (clientNumber == -1) {
-            error.addError(ErrorCode.REQIRE_PARAMETER, "client number is require.");
-        } else if (mClientRepository.findOne(clientNumber) == null) {
-            error.addError(ErrorCode.DATA_NOTHING, "[" + clientNumber + "] is unkown client.");
+            errorList.add(new ApiError(ApiError.REQIRE_PARAMETER, "client number is require."));
+        } else if (clientRepository.findOne(clientNumber) == null) {
+            errorList.add(new ApiError(ApiError.DATA_NOTHING, "[" + clientNumber + "] is unkown client."));
         }
         // 請求開始日.
         String endDate = form.getInvoiceEndDate();
         if (endDate == null) {
-            error.addError(ErrorCode.REQIRE_PARAMETER, "invoice end date is require.");
+            errorList.add(new ApiError(ApiError.REQIRE_PARAMETER, "invoice end date is require."));
         } else if (!FormatUtils.isFineDateString(endDate)) {
-            error.addError(ErrorCode.PARAMETER_FORMAT, "invoice end date format error.");
+            errorList.add(new ApiError(ApiError.PARAMETER_FORMAT, "invoice end date format error."));
         }
         // 請求終了日.
         String startDate = form.getInvoiceStartDate();
         if (startDate == null) {
-            error.addError(ErrorCode.REQIRE_PARAMETER, "invoice start date is require.");
+            errorList.add(new ApiError(ApiError.REQIRE_PARAMETER, "invoice start date is require."));
         } else if (!FormatUtils.isFineDateString(startDate)) {
-            error.addError(ErrorCode.PARAMETER_FORMAT, "invoice start date format error.");
+            errorList.add(new ApiError(ApiError.PARAMETER_FORMAT, "invoice start date format error."));
         }
         // タイトル.
         if (!FormatUtils.isFineString(form.getInvoiceTitle())) {
-            error.addError(ErrorCode.REQIRE_PARAMETER, "invoice title is require.");
+            errorList.add(new ApiError(ApiError.REQIRE_PARAMETER, "invoice title is require."));
         }
-        if (!error.isEmpty()) {
-            throw error;
+        if (!errorList.isEmpty()) {
+            throw new ApiException(errorList);
         }
     }
 
