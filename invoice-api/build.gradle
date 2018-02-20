@@ -45,15 +45,3 @@ checkstyle {
 findbugs {
     ignoreFailures true
 }
-
-
-subprojects {
-    apply plugin: 'checkstyle'
-    checkstyle {
-        ignoreFailures true
-        configFile rootProject.file('config/checkstyle/checkstyle.xml')
-    }
-    findbugs {
-        ignoreFailures true
-    }
-}
