@@ -14,6 +14,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'checkstyle'
+apply plugin: 'findbugs'
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
@@ -41,11 +42,18 @@ test {
 checkstyle {
     ignoreFailures true
 }
+findbugs {
+    ignoreFailures true
+}
+
 
 subprojects {
     apply plugin: 'checkstyle'
     checkstyle {
         ignoreFailures true
         configFile rootProject.file('config/checkstyle/checkstyle.xml')
+    }
+    findbugs {
+        ignoreFailures true
     }
 }
