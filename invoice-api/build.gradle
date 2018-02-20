@@ -30,13 +30,7 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-web')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	provided "org.projectlombok:lombok:1.16.20"
+	compile fileTree(dir: './libs', includes: ['*.jar'])
 
     compile project(':invoice-dao')
-}
-
-eclipse {
-    classpath {
-        plusConfigurations += [configurations.provided]
-        noExportConfigurations += [configurations.provided]
-    }
 }
