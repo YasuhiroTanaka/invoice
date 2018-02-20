@@ -13,6 +13,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'checkstyle'
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
@@ -33,4 +34,15 @@ dependencies {
 	compile fileTree(dir: './libs', includes: ['*.jar'])
 
     compile project(':invoice-dao')
+}
+checkstyle {
+    ignoreFailures true
+}
+
+subprojects {
+    apply plugin: 'checkstyle'
+    checkstyle {
+        ignoreFailures true
+        configFile rootProject.file('config/checkstyle/checkstyle.xml')
+    }
 }
