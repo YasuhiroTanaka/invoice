@@ -42,6 +42,7 @@ test {
 }
 checkstyle {
     ignoreFailures true
+    configFile = '../config/checkstyle/checkstyle.xml' as File
 }
 findbugs {
     ignoreFailures true
