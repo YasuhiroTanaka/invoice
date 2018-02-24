@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,7 @@ import com.example.demo.exception.ApiException;
 import com.example.demo.form.InvoiceRequestForm;
 import com.example.demo.response.ApiError;
 import com.example.demo.service.InvoiceService;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 /**
@@ -83,13 +85,18 @@ public class InvoiceController {
      * @return error response.
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({ ApiException.class, InvalidFormatException.class, Exception.class })
+    @ExceptionHandler({
+        ApiException.class,
+        HttpMessageNotReadableException.class,
+        InvalidFormatException.class,
+        JsonParseException.class})
     @ResponseBody
     public List<ApiError> handleError(final Exception error) {
         List<ApiError> errorList;
         if (error instanceof ApiException) {
             errorList = ((ApiException) error).getApiErrorList();
-        } else if (error instanceof InvalidFormatException) {
+        } else if (error instanceof HttpMessageNotReadableException
+                || error instanceof InvalidFormatException || error instanceof JsonParseException) {
             errorList = Arrays.asList(new ApiError(ApiError.PARAMETER_FORMAT, error.getMessage()));
         } else {
             errorList = Arrays.asList(new ApiError(ApiError.ERROR_OTHER, error.getMessage()));
@@ -104,9 +111,9 @@ public class InvoiceController {
      * @return error response.
      */
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler({ RuntimeException.class })
+    @ExceptionHandler({ Throwable.class })
     @ResponseBody
-    public List<ApiError> handleError(final RuntimeException error) {
-        return Arrays.asList(new ApiError(ApiError.ERROR_OTHER, error.getMessage()));
+    public List<ApiError> handleError(final Throwable error) {
+        return Arrays.asList(new ApiError(ApiError.ERROR_OTHER, error.getMessage() + "aaaaaaaaaaaaaaaaaaaaaaaa"));
     }
 }

@@ -2,7 +2,10 @@ package com.example.demo.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.ToString;
+
 /** エラー. */
+@ToString
 public class ApiError {
     /** エラーコード(必須パラメータなし). */
     public static final int REQIRE_PARAMETER = 1000;
@@ -29,13 +32,5 @@ public class ApiError {
     public ApiError(@JsonProperty("error_code") final int errorCode, @JsonProperty("error_message") final String errorMessage) {
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String toString() {
-        return "{error_code=>" + errorCode + " error_message=>" + errorMessage + "}";
     }
 }
