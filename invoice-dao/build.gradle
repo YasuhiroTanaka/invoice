@@ -13,19 +13,39 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'checkstyle'
+apply plugin: 'findbugs'
+apply plugin: "jacoco"
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
+bootRepackage.enabled = false
 
 repositories {
 	mavenCentral()
 }
-
+test {
+    ignoreFailures = true
+}
+checkstyle {
+    ignoreFailures true
+    configFile = '../config/checkstyle/checkstyle.xml' as File
+}
+findbugs {
+    ignoreFailures true
+}
 
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter-data-jpa')
 	compile('org.springframework.boot:spring-boot-starter-web')
 	runtime('mysql:mysql-connector-java')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled false
+    }
 }
