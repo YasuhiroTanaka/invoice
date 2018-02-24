@@ -114,6 +114,6 @@ public class InvoiceController {
     @ExceptionHandler({ Throwable.class })
     @ResponseBody
     public List<ApiError> handleError(final Throwable error) {
-        return Arrays.asList(new ApiError(ApiError.ERROR_OTHER, error.getMessage() + "aaaaaaaaaaaaaaaaaaaaaaaa"));
+        return Arrays.asList(new ApiError(ApiError.ERROR_OTHER, error.getMessage()));
     }
 }
