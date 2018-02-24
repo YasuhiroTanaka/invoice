@@ -1,0 +1,2 @@
+include ':invoice-dao'
+project(':invoice-dao').projectDir = new File(settingsDir, '../invoice-dao')
